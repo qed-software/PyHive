@@ -71,3 +71,22 @@ class TrinoDialect(PrestoDialect):
     @classmethod
     def dbapi(cls):
         return trino
+
+
+    def get_columns(self, connection, table_name, schema=None, **kw):
+        rows = self._get_table_columns(connection, table_name, schema)
+        result = []
+        for row in rows:
+            try:
+                coltype = _type_map[str(row.Type).split('(')[0]]
+            except KeyError:
+                util.warn("Did not recognize type '%s' of column '%s'" % (row.Type, row.Column))
+                coltype = types.NullType
+            result.append({
+                'name': row.Column,
+                'type': coltype,
+                # newer Presto no longer includes this column
+                'nullable': getattr(row, 'Null', True),
+                'default': None,
+            })
+        return result

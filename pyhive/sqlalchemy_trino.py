@@ -39,6 +39,7 @@ _type_map = {
     'timestamp': types.TIMESTAMP,
     'date': types.DATE,
     'varbinary': types.VARBINARY,
+    'json': types.JSON,
 }
 
 
@@ -91,3 +92,7 @@ class TrinoDialect(PrestoDialect):
                 'default': None,
             })
         return result
+
+    @property
+    def _json_deserializer(self):
+        return None

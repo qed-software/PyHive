@@ -20,7 +20,8 @@ from sqlalchemy.sql.compiler import SQLCompiler
 
 from pyhive import trino
 from pyhive.common import UniversalSet
-from pyhive.sqlalchemy_presto import PrestoDialect, PrestoCompiler, PrestoIdentifierPreparer
+from pyhive.sqlalchemy_presto import PrestoDialect, PrestoCompiler, PrestoTypeCompiler, \
+    PrestoIdentifierPreparer
 
 class TrinoIdentifierPreparer(PrestoIdentifierPreparer):
     pass
@@ -45,7 +46,7 @@ class TrinoCompiler(PrestoCompiler):
     pass
 
 
-class TrinoTypeCompiler(PrestoCompiler):
+class TrinoTypeCompiler(PrestoTypeCompiler):
     def visit_CLOB(self, type_, **kw):
         raise ValueError("Trino does not support the CLOB column type.")
 
@@ -71,7 +72,6 @@ class TrinoDialect(PrestoDialect):
     @classmethod
     def dbapi(cls):
         return trino
-
 
     def get_columns(self, connection, table_name, schema=None, **kw):
         rows = self._get_table_columns(connection, table_name, schema)

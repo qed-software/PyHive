@@ -54,7 +54,7 @@ class TrinoTypeCompiler(PrestoTypeCompiler):
         raise ValueError("Trino does not support the NCLOB column type.")
 
     def visit_DATETIME(self, type_, **kw):
-        raise ValueError("Trino does not support the DATETIME column type.")
+        return 'VARCHAR'
 
     def visit_FLOAT(self, type_, **kw):
         return 'DOUBLE'
@@ -68,6 +68,7 @@ class TrinoTypeCompiler(PrestoTypeCompiler):
 
 class TrinoDialect(PrestoDialect):
     name = 'trino'
+    type_compiler = TrinoTypeCompiler
 
     @classmethod
     def dbapi(cls):

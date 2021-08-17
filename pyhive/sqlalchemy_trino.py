@@ -20,7 +20,8 @@ from sqlalchemy.sql.compiler import SQLCompiler
 
 from pyhive import trino
 from pyhive.common import UniversalSet
-from pyhive.sqlalchemy_presto import PrestoDialect, PrestoCompiler, PrestoIdentifierPreparer
+from pyhive.sqlalchemy_presto import PrestoDialect, PrestoCompiler, PrestoTypeCompiler, \
+    PrestoIdentifierPreparer
 
 class TrinoIdentifierPreparer(PrestoIdentifierPreparer):
     pass
@@ -38,6 +39,7 @@ _type_map = {
     'timestamp': types.TIMESTAMP,
     'date': types.DATE,
     'varbinary': types.VARBINARY,
+    'json': types.JSON,
 }
 
 
@@ -45,7 +47,7 @@ class TrinoCompiler(PrestoCompiler):
     pass
 
 
-class TrinoTypeCompiler(PrestoCompiler):
+class TrinoTypeCompiler(PrestoTypeCompiler):
     def visit_CLOB(self, type_, **kw):
         raise ValueError("Trino does not support the CLOB column type.")
 
@@ -53,7 +55,7 @@ class TrinoTypeCompiler(PrestoCompiler):
         raise ValueError("Trino does not support the NCLOB column type.")
 
     def visit_DATETIME(self, type_, **kw):
-        raise ValueError("Trino does not support the DATETIME column type.")
+        return 'VARCHAR'
 
     def visit_FLOAT(self, type_, **kw):
         return 'DOUBLE'
@@ -67,11 +69,11 @@ class TrinoTypeCompiler(PrestoCompiler):
 
 class TrinoDialect(PrestoDialect):
     name = 'trino'
+    type_compiler = TrinoTypeCompiler
 
     @classmethod
     def dbapi(cls):
         return trino
-
 
     def get_columns(self, connection, table_name, schema=None, **kw):
         rows = self._get_table_columns(connection, table_name, schema)
@@ -90,3 +92,7 @@ class TrinoDialect(PrestoDialect):
                 'default': None,
             })
         return result
+
+    @property
+    def _json_deserializer(self):
+        return None
